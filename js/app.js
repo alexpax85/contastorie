@@ -151,12 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
      * Funzione principale per generare la storia
      */
     async function handleGenerateStory() {
-        console.log('Chiave API utilizzata:', API_KEY);
-        if (typeof API_KEY === 'undefined' || API_KEY === 'YOUR_API_KEY') {
-            alert('Per favore, inserisci la tua API Key di Google AI nel file js/gemini-api.js');
-            return;
-        }
-        
         const selections = getSelections();
         if (!selections) return;
 
