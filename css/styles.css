@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Butterfly+Kids&display=swap');
+
+:root {
+    --primary-bg-color: #f0f8ff; /* Azzurro chiaro */
+    --card-bg-color: #ffffff;
+    --text-color: #333333;
+    --accent-color-1: #ffd1dc; /* Rosa tenue */
+    --accent-color-2: #d4edda; /* Verde menta */
+    --accent-color-3: #fffacd; /* Giallo delicato */
+    --button-bg-color: #ffb6c1; /* Rosa più deciso */
+    --button-hover-color: #ffa07a; /* Salmone */
+    
+    --font-sans-serif: 'Nunito', 'Quicksand', sans-serif;
+    --font-display: 'Butterfly Kids', cursive;
+}
+
+body {
+    font-family: var(--font-sans-serif);
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 800px;
+    width: 100%;
+    background-color: var(--card-bg-color);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+header h1 {
+    font-family: var(--font-display);
+    text-align: center;
+    font-size: 2.5em;
+    color: var(--button-bg-color);
+    margin-bottom: 30px;
+}
+
+.step {
+    margin-bottom: 30px;
+}
+
+.step h2 {
+    font-family: var(--font-sans-serif);
+    font-weight: 700;
+    font-size: 1.5em;
+    border-bottom: 2px solid var(--accent-color-1);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.option-card {
+    background-color: #f8f9fa;
+    border: 2px solid transparent;
+    border-radius: 15px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.option-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.option-card.selected {
+    border-color: var(--button-bg-color);
+    background-color: var(--accent-color-1);
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    margin-top: 15px;
+    font-size: 1em;
+    font-family: var(--font-sans-serif);
+}
+
+#generate-story {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    background-color: var(--button-bg-color);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.5em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#generate-story:hover {
+    background-color: var(--button-hover-color);
+}
+
+.hidden {
+    display: none !important;
+}
+
+#loading-screen {
+    text-align: center;
+    padding: 50px 0;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid var(--button-bg-color);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#story-screen {
+    padding: 20px;
+    animation: fadeIn 1s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#story-title {
+    font-family: var(--font-display);
+    font-size: 2em;
+    text-align: center;
+    color: var(--button-bg-color);
+    margin-bottom: 20px;
+}
+
+#story-text {
+    font-size: 1.2em;
+    line-height: 1.8;
+    white-space: pre-wrap;
+}
+
+#story-text p {
+    margin-bottom: 1em;
+}
+
+.actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.actions button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 2px solid var(--button-bg-color);
+}
+
+#copy-text {
+    background-color: transparent;
+    color: var(--button-bg-color);
+}
+
+#new-story {
+    background-color: var(--button-bg-color);
+    color: white;
+}
