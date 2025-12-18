@@ -102,8 +102,13 @@ FORMATO OUTPUT:
 - Temperature: 0.8-0.9 (creatività elevata ma controllata)
 - Max tokens: 4096 (per accomodare la lunghezza desiderata)
 - Safety settings: Bloccare contenuti inappropriati per bambini
+- **Gestione della chiave API**: La chiave API è gestita in modo sicuro tramite variabili d'ambiente sul backend (Vercel) e non è esposta nel frontend.
 
 ## 📱 Struttura dell'Applicazione
+
+### Architettura
+- **Frontend (Client-side)**: HTML5, CSS3, JavaScript Vanilla. Gestisce l'interfaccia utente e invia le richieste al backend.
+- **Backend (Serverless Function)**: Node.js, Vercel API routes. Riceve le richieste dal frontend, effettua la chiamata all'API di Gemini (utilizzando la chiave API sicura da variabili d'ambiente) e restituisce la storia al frontend.
 
 ### Pagina Principale (Home)
 1. **Header**: Titolo accogliente "✨ Il Magico Creatore di Fiabe ✨"
@@ -130,23 +135,25 @@ FORMATO OUTPUT:
 
 ### Frontend
 - **HTML5** + **CSS3** (con variabili CSS per temi)
-- **JavaScript Vanilla** o framework leggero (React/Vue se preferito)
+- **JavaScript Vanilla**
 - **Responsive design**: Mobile-first approach
 
 ### Backend/API
-- **Gemini API** tramite Google AI SDK
-- Gestione chiamate API lato client o tramite proxy semplice (Node.js/Python)
+- **Node.js** con Vercel Serverless Functions
+- **Gemini API** tramite Google AI SDK (chiamate gestite lato server)
 
 ### Deployment
-- Esecuzione locale: servire tramite `http-server`, `python -m http.server`, o simili
-- Opzionale: Deploy su Vercel, Netlify, GitHub Pages (se si vuole condividere)
+- **Vercel**: Piattaforma scelta per il deployment frontend e backend (serverless functions).
+- **GitHub**: Repository per il controllo versione e l'integrazione con Vercel per il Continuous Deployment.
+- **Esecuzione locale**: Utilizzare `vercel dev` per simulare l'ambiente Vercel e testare frontend e backend localmente. La chiave API per lo sviluppo locale deve essere configurata in un file `.env.local`.
 
 ## 🔒 Considerazioni di Sicurezza e Privacy
 
-- **API Key**: NON committare mai la chiave API nel codice. Usare variabili d'ambiente
-- **Content Safety**: Utilizzare i filtri di sicurezza di Gemini per bloccare contenuti inappropriati
-- **Dati utente**: Non memorizzare dati personali o storie generate (privacy dei bambini)
-- **Rate limiting**: Implementare controlli per evitare abusi dell'API
+- **API Key**: NON committare mai la chiave API nel codice frontend. Utilizzata in modo sicuro tramite variabili d'ambiente nelle funzioni serverless di Vercel.
+- **Content Safety**: Utilizzare i filtri di sicurezza di Gemini per bloccare contenuti inappropriati.
+- **Dati utente**: Non memorizzare dati personali o storie generate (privacy dei bambini).
+- **Rate limiting**: (Da implementare) Controlli per evitare abusi dell'API e gestire il consumo delle quote.
+- **Monitoraggio Costi**: Configurare alert di fatturazione per l'API di Gemini per prevenire spese inattese.
 
 ## 📋 Requisiti Funzionali Dettagliati
 
@@ -163,7 +170,7 @@ FORMATO OUTPUT:
 - **Formattazione**: Paragrafi ben separati per facilitare la lettura
 
 ### Gestione Errori
-- Messaggio friendly se la generazione fallisce
+- Messaggio friendly se la generazione fallisce (gestito dalla funzione serverless e mostrato nel frontend)
 - Possibilità di ritentare senza re-inserire i dati
 - Timeout dopo 30 secondi con messaggio appropriato
 
@@ -212,9 +219,12 @@ fiabe-app/
 ├── js/
 │   ├── app.js
 │   └── gemini-api.js
+├── api/
+│   └── generate-story.js  // Nuova funzione serverless
 ├── assets/
 │   └── icons/
-├── .env (API key)
+├── .env.local             // Variabili d'ambiente per sviluppo locale (non su Git)
+├── .gitignore
 ├── Notes.md
 └── README.md
 ```

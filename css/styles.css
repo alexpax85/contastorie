@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Butterfly+Kids&display=swap');
 
 :root {
-    --primary-bg-color: #f0f8ff; /* Azzurro chiaro */
-    --card-bg-color: #ffffff;
-    --text-color: #333333;
-    --accent-color-1: #ffd1dc; /* Rosa tenue */
-    --accent-color-2: #d4edda; /* Verde menta */
-    --accent-color-3: #fffacd; /* Giallo delicato */
-    --button-bg-color: #ffb6c1; /* Rosa più deciso */
-    --button-hover-color: #ffa07a; /* Salmone */
+    --primary-bg-color: oklch(1 0 0); /* background */
+    --card-bg-color: oklch(1 0 0); /* card */
+    --text-color: oklch(0.145 0 0); /* foreground */
+    --accent-color-1: oklch(0.97 0 0); /* secondary, can be used for softer accents */
+    --accent-color-2: oklch(0.922 0 0); /* border, for subtle lines */
+    --accent-color-3: oklch(0.97 0 0); /* muted */
+    --button-bg-color: oklch(0.205 0 0); /* primary */
+    --button-hover-color: oklch(0.145 0 0); /* A slightly darker primary for hover */
     
     --font-sans-serif: 'Nunito', 'Quicksand', sans-serif;
     --font-display: 'Butterfly Kids', cursive;
@@ -26,14 +26,31 @@ body {
     min-height: 100vh;
 }
 
+/* css/styles.css */
+
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Place it behind everything else */
+}
+
 .container {
     max-width: 800px;
     width: 100%;
-    background-color: var(--card-bg-color);
+    /* Make the container background slightly transparent to see the canvas */
+    background-color: rgba(255, 255, 255, 0.85); 
     padding: 30px;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px); /* Frosted glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+/* Rest of your styles... */
+/* ... */
 
 header h1 {
     font-family: var(--font-display);
@@ -148,6 +165,26 @@ input[type="text"] {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animating-out {
+    animation: fadeOut 0.5s ease-out forwards; /* Apply fadeOut animation when hiding */
 }
 
 #story-title {
