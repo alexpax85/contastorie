@@ -133,17 +133,54 @@ document.addEventListener('DOMContentLoaded', () => {
      * Mostra una schermata e nasconde le altre
      * @param {string} screenToShow - 'selection', 'loading', o 'story'
      */
+    function hideElementAnimated(element, animationClass, onComplete) {
+        if (element.classList.contains('hidden')) {
+            if (onComplete) onComplete();
+            return;
+        }
+        element.classList.add(animationClass, 'animating-out');
+        const handleAnimationEnd = () => {
+            element.classList.add('hidden');
+            element.classList.remove(animationClass, 'animating-out');
+            element.removeEventListener('animationend', handleAnimationEnd);
+            if (onComplete) onComplete();
+        };
+        element.addEventListener('animationend', handleAnimationEnd, { once: true });
+    }
+
+    function showElementAnimated(element, animationClass) {
+        element.classList.remove('hidden');
+        element.classList.add(animationClass);
+        const handleAnimationEnd = () => {
+            element.classList.remove(animationClass);
+            element.removeEventListener('animationend', handleAnimationEnd);
+        };
+        element.addEventListener('animationend', handleAnimationEnd, { once: true });
+    }
+
+    /**
+     * Mostra una schermata e nasconde le altre con animazioni
+     * @param {string} screenToShow - 'selection', 'loading', o 'story'
+     */
     function showScreen(screenToShow) {
-        selectionScreen.classList.add('hidden');
-        loadingScreen.classList.add('hidden');
-        storyScreen.classList.add('hidden');
+        const screens = {
+            selection: selectionScreen,
+            loading: loadingScreen,
+            story: storyScreen
+        };
+
+        for (const key in screens) {
+            if (key !== screenToShow) {
+                hideElementAnimated(screens[key], 'fadeIn'); // Use fadeIn for hiding for now
+            }
+        }
 
         if (screenToShow === 'selection') {
-            selectionScreen.classList.remove('hidden');
+            showElementAnimated(selectionScreen, 'fadeIn');
         } else if (screenToShow === 'loading') {
-            loadingScreen.classList.remove('hidden');
+            showElementAnimated(loadingScreen, 'fadeIn');
         } else if (screenToShow === 'story') {
-            storyScreen.classList.remove('hidden');
+            showElementAnimated(storyScreen, 'fadeIn');
         }
     }
 

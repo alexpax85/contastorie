@@ -1,1 +1,3 @@
 # Ignora il file di configurazione locale che contiene le chiavi API
+.vercel
+.env*.local

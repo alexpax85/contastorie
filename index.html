@@ -3,45 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Il Magico Creatore di Fiabe</title>
+    <title>✨ Il Magico Creatore di Fiabe ✨</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Nunito:wght@400;700&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+    <canvas id="bg-canvas"></canvas>
     <div class="container">
-        <header>
-            <h1>✨ Il Magico Creatore di Fiabe ✨</h1>
-        </header>
-
-        <main id="selection-screen">
-            <div class="step" id="step-1">
-                <h2>1. Scegli i personaggi</h2>
-                <div class="options">
-                    <!-- Character options will be inserted here by JavaScript -->
+        <div id="selection-screen">
+            <header>
+                <h1>✨ Il Magico Creatore di Fiabe ✨</h1>
+            </header>
+            <main>
+                <div id="step-1" class="step">
+                    <h2>1. Scegli i tuoi personaggi</h2>
+                    <div class="options character-options">
+                        <!-- Card dei personaggi verranno inserite qui -->
+                    </div>
+                    <input type="text" id="custom-character" placeholder="Oppure scrivi un personaggio personalizzato...">
                 </div>
-                <input type="text" id="custom-character" placeholder="O scrivi un personaggio personalizzato">
-            </div>
-
-            <div class="step" id="step-2">
-                <h2>2. Scegli l'ambientazione</h2>
-                <div class="options">
-                    <!-- Setting options will be inserted here by JavaScript -->
+                <div id="step-2" class="step">
+                    <h2>2. Scegli l'ambientazione</h2>
+                    <div class="options setting-options">
+                        <!-- Card delle ambientazioni verranno inserite qui -->
+                    </div>
+                    <input type="text" id="custom-setting" placeholder="Oppure scrivi un'ambientazione personalizzata...">
                 </div>
-                <input type="text" id="custom-setting" placeholder="O scrivi un'ambientazione personalizzata">
-            </div>
-
-            <div class="step" id="step-3">
-                <h2>3. Scegli l'insegnamento</h2>
-                <div class="options">
-                    <!-- Moral options will be inserted here by JavaScript -->
+                <div id="step-3" class="step">
+                    <h2>3. Scegli l'insegnamento</h2>
+                    <div class="options moral-options">
+                        <!-- Card delle morali verranno inserite qui -->
+                    </div>
+                    <input type="text" id="custom-moral" placeholder="Oppure scrivi un insegnamento personalizzato...">
                 </div>
-                <input type="text" id="custom-moral" placeholder="O scrivi un insegnamento personalizzato">
-            </div>
-
-            <button id="generate-story">Crea la mia fiaba!</button>
-        </main>
+                <button id="generate-story">Crea la mia fiaba!</button>
+            </main>
+        </div>
 
         <div id="loading-screen" class="hidden">
             <div class="spinner"></div>
@@ -60,5 +57,6 @@
 
     <script src="js/gemini-api.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/background.js"></script>
 </body>
 </html>
