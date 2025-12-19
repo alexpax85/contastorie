@@ -77,19 +77,21 @@ header h1 {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
+    justify-content: center; /* Center the cards */
 }
 
 .option-card {
     background-color: #f8f9fa;
     border: 2px solid transparent;
     border-radius: 15px;
-    padding: 15px 20px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 1.1em;
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    width: 80px; /* Square-like cards */
+    height: 80px;
+    font-size: 2.5em; /* Larger emoji */
 }
 
 .option-card:hover {
@@ -100,8 +102,18 @@ header h1 {
 .option-card.selected {
     border-color: var(--button-bg-color);
     background-color: var(--accent-color-1);
-    color: var(--text-color);
-    font-weight: bold;
+    transform: scale(1.1);
+}
+
+/* Stile specifico per le moral-card (vecchio stile) */
+.moral-card {
+    width: 100%; /* Occupano l'intera larghezza per una lista */
+    height: auto; /* Altezza automatica in base al contenuto */
+    padding: 15px 20px; /* Padding originale */
+    font-size: 1.1em; /* Dimensione del font originale */
+    flex-direction: row; /* Icona e testo affiancati */
+    justify-content: flex-start; /* Allinea a sinistra */
+    gap: 10px; /* Spazio tra icona e testo */
 }
 
 input[type="text"] {
@@ -112,6 +124,7 @@ input[type="text"] {
     margin-top: 15px;
     font-size: 1em;
     font-family: var(--font-sans-serif);
+    box-sizing: border-box; /* Aggiunto per risolvere problemi di overflow */
 }
 
 #generate-story {
@@ -228,4 +241,90 @@ input[type="text"] {
 #new-story {
     background-color: var(--button-bg-color);
     color: white;
+}
+
+/* Popup Styles */
+#popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s;
+}
+
+#popup {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 90%;
+    width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+#popup-text {
+    font-size: 1.4em;
+    margin-bottom: 20px;
+}
+
+.popup-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.popup-actions button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 2px solid var(--button-bg-color);
+}
+
+#popup-select {
+    background-color: var(--button-bg-color);
+    color: white;
+}
+
+#popup-close {
+    background-color: transparent;
+    color: var(--button-bg-color);
+}
+
+
+/* Media Query for Mobile Devices */
+@media (max-width: 600px) {
+    body {
+        padding: 15px;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    header h1 {
+        font-size: 2em;
+    }
+
+    .option-card {
+        width: calc(33.333% - 10px); /* Three columns */
+        height: 70px;
+        font-size: 2em;
+    }
+
+    /* Sovrascrittura per moral-card in mobile */
+    .moral-card {
+        width: 100%;
+        height: auto;
+        font-size: 1.1em; /* Torna alla dimensione originale del testo */
+        flex-direction: row;
+        justify-content: flex-start;
+    }
 }
