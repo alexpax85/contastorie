@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Inventore geniale", emoji: "🧑‍🔬" },
         { name: "Robot gentile", emoji: "🤖" },
         { name: "Alieno amichevole", emoji: "👽" },
+        { name: "Cagnolino affettuoso", emoji: "🐶" },
+        { name: "Pianta carnivora", emoji: "🪴" },
+        { name: "Orsetto goloso", emoji: "🧸" },
+        { name: "Sirenetta", emoji: "🧜‍♀️" },
+        { name: "Pesciolino gentile", emoji: "🐠" },
     ];
 
     const settingsData = [
@@ -24,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Villaggio magico", emoji: "🏘️" },
         { name: "Montagne delle nuvole", emoji: "🏔️" },
         { name: "Isola arcobaleno", emoji: "🌈" },
+        { name: "Mondo degli unicorni", emoji: "✨" },
+        { name: "Spiaggia dorata", emoji: "🏖️" },
     ];
 
     const moralsData = [
