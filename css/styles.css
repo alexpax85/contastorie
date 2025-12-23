@@ -330,3 +330,18 @@ input[type="text"] {
         justify-content: flex-start;
     }
 }
+
+#create-illustration {
+    background-color: #8e7cc3;
+    color: white;
+}
+
+#create-illustration:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+#story-media-container {
+    text-align: center;
+    margin: 20px 0;
+}
