@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/alexpax85/contastorie/issues"
   },
-  "homepage": "https://github.com/alexpax85/contastorie#readme"
+  "homepage": "https://github.com/alexpax85/contastorie#readme",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1"
+  }
 }
