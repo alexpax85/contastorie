@@ -3,12 +3,12 @@
 :root {
     --primary-bg-color: oklch(1 0 0); /* background */
     --card-bg-color: oklch(1 0 0); /* card */
-    --text-color: oklch(0.145 0 0); /* foreground */
+    --text-color: #F4C2C2; /* foreground */
     --accent-color-1: oklch(0.97 0 0); /* secondary, can be used for softer accents */
     --accent-color-2: oklch(0.922 0 0); /* border, for subtle lines */
     --accent-color-3: oklch(0.97 0 0); /* muted */
-    --button-bg-color: oklch(0.205 0 0); /* primary */
-    --button-hover-color: oklch(0.145 0 0); /* A slightly darker primary for hover */
+    --button-bg-color: #F4C2C2; /* primary */
+    --button-hover-color: #E0B0B0; /* A slightly darker primary for hover */
     
     --font-sans-serif: 'Nunito', 'Quicksand', sans-serif;
     --font-display: 'Butterfly Kids', cursive;
