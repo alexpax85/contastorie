@@ -95,8 +95,8 @@ MORALE: [insegnamento da trasmettere]
 ### Configurazione API
 L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API di Google Generative AI per garantire il controllo sui modelli.
 
-- **Endpoint Storia & Prompt Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
-    - Modello: `gemini-2.0-flash` (ottimizzato per stabilità e performance)
+- **Endpoint Storia & Prompt Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
+    - Modello: `gemini-2.5-flash` (bilanciamento ottimale qualità/velocità)
 - **Endpoint Generazione Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent`
     - Modello: `gemini-2.5-flash-image`
     - Nota: Non si specifica `responseMimeType` nella configurazione per questo modello per evitare errori 400.
