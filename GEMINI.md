@@ -157,5 +157,5 @@ Un'implementazione di successo dovrebbe:
 ---
 
 **Versione**: 1.1 (Con Immagini)
-**Ultimo aggiornamento**: 23 Dicembre 2025
+**Ultimo aggiornamento**: 5 Febbraio 2026
 **Target**: Bambini 5-7 anni + Genitori/Educatori

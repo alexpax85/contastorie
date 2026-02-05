@@ -84,3 +84,31 @@ Il progetto ora dispone di:
 *   Generazione Illustrazioni (immagini) via `gemini-2.5-flash-image`.
 *   Pulsante per copiare l'immagine generata.
 *   Architettura serverless sicura su Vercel.
+
+---
+
+# Aggiornamento: 5 Febbraio 2026 - Risoluzione Errori 503/429 e Consolidamento Modelli
+
+## 1. Troubleshooting Modelli Gemini 2.x
+
+**Problema:** L'applicazione ha iniziato a restituire errori `503 Service Unavailable` e successivamente `429 Too Many Requests` utilizzando il modello `gemini-2.5-flash-lite` e il tentativo di fallback su `gemini-2.0-flash`.
+
+**Causa:** 
+- Il modello `gemini-2.5-flash-lite` risultava instabile o sovraccarico (503).
+- Il modello `gemini-2.0-flash` è stato identificato come prossimo alla dismissione (scheduled shutdown Marzo 2026) e soggetto a forti limitazioni di quota (429).
+- Una comunicazione ufficiale di Google ha indicato la necessità di gestire i "Thought Signatures" per i modelli Gemini 3, rendendo l'uso degli alias `-latest` più complesso.
+
+**Soluzione:**
+Dopo diversi test, è stato scelto il modello **`gemini-2.5-flash`** (versione standard, non lite) come soluzione definitiva per la generazione di testo e prompt. Questo modello offre:
+- **Qualità superiore** nella narrazione rispetto alla versione lite.
+- **Stabilità** maggiore rispetto ai modelli preview o in dismissione.
+- **Piena compatibilità** con l'infrastruttura `v1beta` esistente.
+
+## 2. Configurazione Finale Funzionante
+
+L'applicazione è ora configurata e verificata con i seguenti endpoint:
+
+*   **Testo / Prompt:** `gemini-2.5-flash`
+*   **Immagini:** `gemini-2.5-flash-image`
+
+**Risultato:** L'applicazione è tornata pienamente operativa, con una qualità di generazione delle storie ottimale e senza errori di quota o disponibilità.
