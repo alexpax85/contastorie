@@ -2,11 +2,12 @@
 
 ## 📖 Panoramica del Progetto
 
-Webapp per la generazione automatica di fiabe personalizzate per bambini dai 5 ai 7 anni, utilizzando l'intelligenza artificiale di Gemini. L'applicazione permette di creare storie educative e coinvolgenti attraverso la selezione di personaggi, ambientazioni e morali.
+Webapp per la generazione automatica di fiabe personalizzate per bambini dai 5 ai 7 anni, utilizzando l'intelligenza artificiale di Gemini. L'applicazione permette di creare storie educative e coinvolgenti attraverso la selezione di personaggi, ambientazioni e morali, e di generare un'illustrazione magica che accompagna il racconto.
 
 ## 🎯 Obiettivi Principali
 
 - Generare fiabe originali e appropriate per la fascia d'età 5-7 anni
+- Creare illustrazioni visive coerenti con la storia generata
 - Offrire un'esperienza utente rilassante e adatta ai bambini
 - Garantire che ogni storia contenga un insegnamento educativo chiaro
 - Durata di lettura: 5-10 minuti (circa 400-800 parole)
@@ -15,7 +16,7 @@ Webapp per la generazione automatica di fiabe personalizzate per bambini dai 5 a
 ## 🎨 Design e User Experience
 
 ### Stile Visivo
-- **Palette colori**: Tonalità pastello morbide e rilassanti (azzurro chiaro, rosa tenue, verde menta, giallo delicato)
+- **Palette colori**: Tonalità pastello morbide e rilassanti (azzurro chiaro, rosa tenue, verde menta, giallo delicato, viola magico #8e7cc3)
 - **Font**: Caratteri arrotondati e leggibili (es. Quicksand, Nunito, Comic Neue)
 - **Elementi grafici**: Icone friendly, animazioni dolci e non invasive
 - **Layout**: Spazioso, pulito, intuitivo anche per i bambini
@@ -69,67 +70,60 @@ Webapp per la generazione automatica di fiabe personalizzate per bambini dai 5 a
 **Opzioni aggiuntive:**
 - Campo per specificare un insegnamento personalizzato
 
+### 4. Funzionalità Aggiuntive (New!)
+- **Generazione Illustrazione**: Creazione automatica di un'immagine in stile "digital art per bambini" basata sulla storia appena generata.
+- **Copia Immagine**: Possibilità di copiare l'immagine generata negli appunti con un click.
+
 ## 🤖 Integrazione con Gemini AI
 
 ### Prompt Engineering
 Il sistema deve costruire prompt strutturati che includano:
 
+**Per la Storia:**
 ```
 Crea una fiaba per bambini di 5-7 anni con le seguenti caratteristiche:
-
 PERSONAGGI: [personaggi selezionati]
 AMBIENTAZIONE: [ambientazione selezionata]  
 MORALE: [insegnamento da trasmettere]
-
-REQUISITI:
-- Lunghezza: 400-800 parole (lettura 5-10 minuti)
-- Linguaggio: Semplice, comprensibile per età 5-7 anni
-- Tono: Positivo, rassicurante, magico
-- Struttura: Inizio, sviluppo, climax, conclusione con insegnamento chiaro
-- Stile: Narrativo, coinvolgente, con dialoghi semplici
-- Vocabolario: Evocativo ma accessibile, che stimoli l'immaginazione
-- NO contenuti spaventosi o inappropriati
-- L'insegnamento deve emergere naturalmente dalla storia
-
-FORMATO OUTPUT:
-- Titolo accattivante
-- Storia divisa in paragrafi brevi
-- Finale che evidenzi chiaramente la morale
+... (requisiti di stile e tono) ...
 ```
 
+**Per l'Illustrazione (Processo a 2 step):**
+1.  **Generazione Prompt Immagine:** Si chiede al modello testuale di riassumere la storia in una singola frase visiva e descrittiva in inglese.
+2.  **Generazione Immagine:** Si usa il prompt generato per chiamare il modello di immagini.
+
 ### Configurazione API
-- Modello consigliato: `gemini-2.5-flash` (utilizzando l'endpoint API `v1beta`)
-- Temperature: 0.8-0.9 (creatività elevata ma controllata)
-- Max tokens: 4096 (per accomodare la lunghezza desiderata)
-- Safety settings: Bloccare contenuti inappropriati per bambini
-- **Gestione della chiave API**: La chiave API è gestita in modo sicuro tramite variabili d'ambiente sul backend (Vercel) e non è esposta nel frontend.
+L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API di Google Generative AI per garantire il controllo sui modelli.
+
+- **Endpoint Storia & Prompt Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
+    - Modello: `gemini-2.0-flash` (ottimizzato per stabilità e performance)
+- **Endpoint Generazione Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent`
+    - Modello: `gemini-2.5-flash-image`
+    - Nota: Non si specifica `responseMimeType` nella configurazione per questo modello per evitare errori 400.
+
+- **Gestione della chiave API**: La chiave API è gestita in modo sicuro tramite variabili d'ambiente (`GEMINI_API_KEY`) sul backend (Vercel Serverless Functions).
 
 ## 📱 Struttura dell'Applicazione
 
 ### Architettura
 - **Frontend (Client-side)**: HTML5, CSS3, JavaScript Vanilla. Gestisce l'interfaccia utente e invia le richieste al backend.
-- **Backend (Serverless Function)**: Node.js, Vercel API routes. Riceve le richieste dal frontend, effettua la chiamata all'API di Gemini (utilizzando la chiave API sicura da variabili d'ambiente) e restituisce la storia al frontend.
+- **Backend (Serverless Function)**: Node.js, Vercel API routes.
+    - `api/generate-story.js`: Gestisce la creazione del testo.
+    - `api/generate-image.js`: Gestisce la creazione dell'illustrazione.
 
 ### Pagina Principale (Home)
 1. **Header**: Titolo accogliente "✨ Il Magico Creatore di Fiabe ✨"
-2. **Sezione di selezione** con 3 step visualizzati in modo progressivo:
-   - Step 1: Scegli i personaggi
-   - Step 2: Scegli l'ambientazione
-   - Step 3: Scegli l'insegnamento
-3. **Pulsante "Crea la mia fiaba!"**: Grande, colorato, invitante
-4. **Loading state**: Animazione dolce con messaggio "Sto creando la tua fiaba magica..."
+2. **Sezione di selezione** con 3 step visualizzati in modo progressivo.
+3. **Pulsante "Crea la mia fiaba!"**: Grande, colorato, invitante.
 
 ### Pagina Risultato (Storia Generata)
-1. **Titolo della fiaba**: Grande e decorativo
-2. **Area di lettura**: 
-   - Testo ben spaziato e leggibile
-   - Paragrafi separati
-   - Possibilità di scorrere comodamente
-3. **Azioni**:
+1. **Titolo della fiaba**: Grande e decorativo.
+2. **Area Immagine (Nuova)**: Spazio dove appare l'illustrazione generata.
+3. **Area di lettura**: Testo ben spaziato e leggibile.
+4. **Azioni**:
+   - 🎨 Crea un'illustrazione
    - 📋 Copia testo
-   - 💾 Salva come PDF (opzionale)
    - 🔄 Crea una nuova fiaba
-   - ⭐ Rigenerare con gli stessi parametri
 
 ## 🛠️ Stack Tecnologico Consigliato
 
@@ -140,106 +134,28 @@ FORMATO OUTPUT:
 
 ### Backend/API
 - **Node.js** con Vercel Serverless Functions
-- **Gemini API** tramite Google AI SDK (chiamate gestite lato server)
+- **Google Generative AI API** (chiamate via `fetch` nativo)
 
 ### Deployment
-- **Vercel**: Piattaforma scelta per il deployment frontend e backend (serverless functions).
-- **GitHub**: Repository per il controllo versione e l'integrazione con Vercel per il Continuous Deployment.
-- **Esecuzione locale**: Utilizzare `vercel dev` per simulare l'ambiente Vercel e testare frontend e backend localmente. La chiave API per lo sviluppo locale deve essere configurata in un file `.env.local`.
+- **Vercel**: Piattaforma scelta per il deployment frontend e backend.
+- **GitHub**: Repository per il controllo versione e CI/CD.
 
 ## 🔒 Considerazioni di Sicurezza e Privacy
 
-- **API Key**: NON committare mai la chiave API nel codice frontend. Utilizzata in modo sicuro tramite variabili d'ambiente nelle funzioni serverless di Vercel.
-- **Content Safety**: Utilizzare i filtri di sicurezza di Gemini per bloccare contenuti inappropriati.
-- **Dati utente**: Non memorizzare dati personali o storie generate (privacy dei bambini).
-- **Rate limiting**: (Da implementare) Controlli per evitare abusi dell'API e gestire il consumo delle quote.
-- **Monitoraggio Costi**: Configurare alert di fatturazione per l'API di Gemini per prevenire spese inattese.
-
-## 📋 Requisiti Funzionali Dettagliati
-
-### Validazione Input
-- Almeno un personaggio deve essere selezionato o inserito
-- L'ambientazione deve essere specificata
-- La morale deve essere selezionata o scritta
-- Campi di testo personalizzati: limite 100 caratteri, validazione caratteri speciali
-
-### Output della Storia
-- **Lunghezza**: 400-800 parole
-- **Struttura**: Titolo + 4-6 paragrafi
-- **Tempo di lettura**: Indicato nell'interfaccia
-- **Formattazione**: Paragrafi ben separati per facilitare la lettura
-
-### Gestione Errori
-- Messaggio friendly se la generazione fallisce (gestito dalla funzione serverless e mostrato nel frontend)
-- Possibilità di ritentare senza re-inserire i dati
-- Timeout dopo 30 secondi con messaggio appropriato
-
-## 🎓 Linee Guida Pedagogiche
-
-### Appropriatezza dei Contenuti
-- ✅ Emozioni positive e gestione emotiva sana
-- ✅ Risoluzione non violenta dei conflitti
-- ✅ Diversità e inclusione
-- ✅ Valori universali (amicizia, coraggio, onestà)
-- ❌ Violenza o paura eccessiva
-- ❌ Stereotipi negativi
-- ❌ Temi troppo complessi per l'età
-
-### Linguaggio Adatto
-- Frasi brevi (max 15-20 parole)
-- Vocabolario base + qualche parola nuova da contesto
-- Ripetizioni di concetti chiave
-- Dialoghi semplici e naturali
-- Onomatopee e suoni (per coinvolgimento)
-
-## 🚀 Roadmap Funzionalità Future (Opzionali)
-
-- 🎨 Generazione di illustrazioni AI (DALL-E, Stable Diffusion)
-- 🔊 Text-to-speech per leggere la storia ad alta voce
-- 📚 Salvataggio delle fiabe preferite (local storage)
-- 🌍 Supporto multilingua
-- 👨‍👩‍👧 Modalità genitore con note educative
-- 🎭 Modalità interattiva (scegli il tuo percorso)
-- ⭐ Sistema di valutazione delle storie generate
-
-## 📝 Note per lo Sviluppo
-
-### Best Practices
-- Testare le storie generate con feedback di genitori/educatori
-- Iterare sui prompt in base alla qualità degli output
-- Mantenere il codice semplice e commentato
-- Priorità: usabilità per bambini e genitori
-
-### File Structure Suggerita
-```
-fiabe-app/
-├── index.html
-├── css/
-│   └── styles.css
-├── js/
-│   ├── app.js
-│   └── gemini-api.js
-├── api/
-│   └── generate-story.js  // Nuova funzione serverless
-├── assets/
-│   └── icons/
-├── .env.local             // Variabili d'ambiente per sviluppo locale (non su Git)
-├── .gitignore
-├── Notes.md
-└── README.md
-```
+- **API Key**: Gestita lato server, mai esposta al client.
+- **Content Safety**: Utilizzo dei filtri di sicurezza di Gemini.
+- **Dati utente**: Nessuna memorizzazione persistente dei dati.
 
 ## 🎯 Success Metrics
 
 Un'implementazione di successo dovrebbe:
-1. Generare storie coerenti e di qualità in <10 secondi
-2. Avere un'interfaccia intuitiva utilizzabile da bambini con minimo aiuto
-3. Produrre contenuti sempre appropriati e educativi
-4. Essere esteticamente piacevole e rilassante
-5. Funzionare fluidamente su desktop e mobile
+1. Generare storie coerenti e di qualità in <10 secondi.
+2. Generare illustrazioni pertinenti e sicure per i bambini.
+3. Avere un'interfaccia intuitiva utilizzabile da bambini con minimo aiuto.
+4. Essere esteticamente piacevole e rilassante.
 
 ---
 
-**Versione**: 1.0  
-**Ultimo aggiornamento**: Dicembre 2024  
+**Versione**: 1.1 (Con Immagini)
+**Ultimo aggiornamento**: 23 Dicembre 2025
 **Target**: Bambini 5-7 anni + Genitori/Educatori

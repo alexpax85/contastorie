@@ -46,3 +46,41 @@
 3.  La Serverless Function (su Vercel) userà la chiave API (salvata in modo sicuro come variabile d'ambiente) per chiamare l'API di Gemini e inoltrare la risposta al frontend.
 
 **Prossimo Passo:** Implementare la soluzione per la sicurezza della chiave API in vista del deployment.
+
+---
+
+# Aggiornamento: 23 Dicembre 2025 - Implementazione Generazione Immagini e Refactoring API
+
+## 1. Problemi con SDK e Versionamento Modelli
+
+**Problema:** Nel tentativo di implementare la generazione di immagini e TTS usando l'SDK `@google/generative-ai`, abbiamo riscontrato persistenti errori `404 Not Found` per modelli come `gemini-1.5-flash` e `gemini-pro`, nonostante fossero corretti secondo la documentazione generale. Inoltre, errori `400 Bad Request` indicavano conflitti nella configurazione dei parametri (es. `responseMimeType` non supportato per certi endpoint).
+
+**Causa:** L'SDK Node.js, per default, potrebbe puntare alla versione stabile `v1` dell'API, mentre i modelli più recenti e multimodali (flash, flash-image) richiedono spesso l'endpoint `v1beta`. Inoltre, l'SDK astrae le chiamate in modo che a volte nasconde la specifica esatta dell'endpoint.
+
+**Soluzione:**
+Abbandono dell'SDK per le Serverless Functions. Abbiamo riscritto le funzioni (`api/generate-story.js` e la nuova `api/generate-image.js`) utilizzando chiamate `fetch` native dirette agli endpoint REST `v1beta`.
+
+**Esempio Endpoint Funzionante:**
+`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`
+
+## 2. Modelli Specifici Identificati
+
+Dopo vari tentativi, abbiamo identificato una coppia di modelli "gemelli" che funzionano stabilmente per questo progetto e per la chiave API in uso:
+
+*   **Testo / Prompt:** `gemini-2.5-flash-lite` (Veloce, affidabile per la storia e per generare il prompt visivo).
+*   **Immagini:** `gemini-2.5-flash-image` (Modello specifico per la generazione di immagini della famiglia 2.5).
+
+## 3. Peculiarità Generazione Immagini con Gemini
+
+Abbiamo scoperto due dettagli tecnici cruciali per far funzionare `gemini-2.5-flash-image`:
+
+1.  **Niente `responseMimeType`:** A differenza dei modelli di testo dove si specifica `application/json`, per questo modello di immagini NON bisogna passare `responseMimeType: "image/jpeg"` nella configurazione, altrimenti l'API restituisce un errore 400 (`INVALID_ARGUMENT`). Il modello sa già di dover generare un'immagine.
+2.  **Struttura Risposta Multi-parte:** La risposta JSON dell'API può contenere più parti (`parts`). Spesso, la **prima parte** (`parts[0]`) contiene un breve testo introduttivo (es. "Here is your image"), mentre i dati dell'immagine (`inlineData`) si trovano nella **seconda parte** (`parts[1]`). Il codice deve iterare o cercare la parte corretta, non assumere che sia sempre la prima.
+
+## 4. Stato Attuale
+
+Il progetto ora dispone di:
+*   Generazione Storie (testo) via `gemini-2.5-flash-lite`.
+*   Generazione Illustrazioni (immagini) via `gemini-2.5-flash-image`.
+*   Pulsante per copiare l'immagine generata.
+*   Architettura serverless sicura su Vercel.

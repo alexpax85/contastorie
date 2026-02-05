@@ -6,7 +6,7 @@
 export default async function handler(request, response) {
     // 1. Leggi la chiave API segreta dalle variabili d'ambiente del server
     const apiKey = process.env.GEMINI_API_KEY;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     if (!apiKey) {
         return response.status(500).json({ error: 'La chiave API di Gemini non è stata configurata sul server.' });
