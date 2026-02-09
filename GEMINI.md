@@ -2,12 +2,13 @@
 
 ## 📖 Panoramica del Progetto
 
-Webapp per la generazione automatica di fiabe personalizzate per bambini dai 5 ai 7 anni, utilizzando l'intelligenza artificiale di Gemini. L'applicazione permette di creare storie educative e coinvolgenti attraverso la selezione di personaggi, ambientazioni e morali, e di generare un'illustrazione magica che accompagna il racconto.
+Webapp per la generazione automatica di fiabe personalizzate per bambini dai 5 ai 7 anni, utilizzando l'intelligenza artificiale di Gemini. L'applicazione permette di creare storie educative e coinvolgenti attraverso la selezione di personaggi, ambientazioni e morali, generare un'illustrazione magica che accompagna il racconto e ascoltare la storia narrata da una voce naturale.
 
 ## 🎯 Obiettivi Principali
 
 - Generare fiabe originali e appropriate per la fascia d'età 5-7 anni
 - Creare illustrazioni visive coerenti con la storia generata
+- Offrire un'esperienza di narrazione audio coinvolgente
 - Offrire un'esperienza utente rilassante e adatta ai bambini
 - Garantire che ogni storia contenga un insegnamento educativo chiaro
 - Durata di lettura: 5-10 minuti (circa 400-800 parole)
@@ -70,11 +71,17 @@ Webapp per la generazione automatica di fiabe personalizzate per bambini dai 5 a
 **Opzioni aggiuntive:**
 - Campo per specificare un insegnamento personalizzato
 
-### 4. Funzionalità Aggiuntive (New!)
-- **Generazione Illustrazione**: Creazione automatica di un'immagine in stile "digital art per bambini" basata sulla storia appena generata.
+### 4. Generazione Illustrazione
+- **Creazione automatica**: Immagine in stile "digital art per bambini" basata sulla storia appena generata.
 - **Copia Immagine**: Possibilità di copiare l'immagine generata negli appunti con un click.
 
-## 🤖 Integrazione con Gemini AI
+### 5. Narrazione Audio (New!)
+- **Text-to-Speech**: Generazione audio on-demand della storia.
+- **Voce Naturale**: Utilizzo di voci Neural2 (Google Cloud) per un'esperienza d'ascolto piacevole e non robotica.
+- **Player Integrato**: Pulsante per riprodurre/mettere in pausa l'audio direttamente nell'app.
+- **Download MP3**: Possibilità di scaricare il file audio generato per l'ascolto offline.
+
+## 🤖 Integrazione AI & Cloud
 
 ### Prompt Engineering
 Il sistema deve costruire prompt strutturati che includano:
@@ -93,15 +100,17 @@ MORALE: [insegnamento da trasmettere]
 2.  **Generazione Immagine:** Si usa il prompt generato per chiamare il modello di immagini.
 
 ### Configurazione API
-L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API di Google Generative AI per garantire il controllo sui modelli.
+L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API di Google Generative AI e Google Cloud Text-to-Speech.
 
 - **Endpoint Storia & Prompt Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
     - Modello: `gemini-2.5-flash` (bilanciamento ottimale qualità/velocità)
 - **Endpoint Generazione Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent`
     - Modello: `gemini-2.5-flash-image`
-    - Nota: Non si specifica `responseMimeType` nella configurazione per questo modello per evitare errori 400.
+- **Endpoint Text-to-Speech**: `https://texttospeech.googleapis.com/v1/text:synthesize`
+    - Voce: `it-IT-Neural2-A` (Femminile, qualità Neural2)
+    - Encoding: `MP3`
 
-- **Gestione della chiave API**: La chiave API è gestita in modo sicuro tramite variabili d'ambiente (`GEMINI_API_KEY`) sul backend (Vercel Serverless Functions).
+- **Gestione della chiave API**: La chiave API è gestita in modo sicuro tramite variabili d'ambiente (`GEMINI_API_KEY`) sul backend.
 
 ## 📱 Struttura dell'Applicazione
 
@@ -110,6 +119,7 @@ L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API
 - **Backend (Serverless Function)**: Node.js, Vercel API routes.
     - `api/generate-story.js`: Gestisce la creazione del testo.
     - `api/generate-image.js`: Gestisce la creazione dell'illustrazione.
+    - `api/generate-audio.js`: Gestisce la sintesi vocale (TTS).
 
 ### Pagina Principale (Home)
 1. **Header**: Titolo accogliente "✨ Il Magico Creatore di Fiabe ✨"
@@ -118,9 +128,11 @@ L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API
 
 ### Pagina Risultato (Storia Generata)
 1. **Titolo della fiaba**: Grande e decorativo.
-2. **Area Immagine (Nuova)**: Spazio dove appare l'illustrazione generata.
+2. **Area Immagine**: Spazio dove appare l'illustrazione generata.
 3. **Area di lettura**: Testo ben spaziato e leggibile.
 4. **Azioni**:
+   - 🔊 Ascolta storia (Play/Pausa)
+   - ⬇️ Scarica MP3 (Visibile dopo la generazione audio)
    - 🎨 Crea un'illustrazione
    - 📋 Copia testo
    - 🔄 Crea una nuova fiaba
@@ -134,7 +146,8 @@ L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API
 
 ### Backend/API
 - **Node.js** con Vercel Serverless Functions
-- **Google Generative AI API** (chiamate via `fetch` nativo)
+- **Google Generative AI API**
+- **Google Cloud Text-to-Speech API**
 
 ### Deployment
 - **Vercel**: Piattaforma scelta per il deployment frontend e backend.
@@ -143,6 +156,9 @@ L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API
 ## 🔒 Considerazioni di Sicurezza e Privacy
 
 - **API Key**: Gestita lato server, mai esposta al client.
+- **Restrizioni API Key**: La chiave deve essere abilitata per:
+    - Generative Language API (Gemini)
+    - Cloud Text-to-Speech API
 - **Content Safety**: Utilizzo dei filtri di sicurezza di Gemini.
 - **Dati utente**: Nessuna memorizzazione persistente dei dati.
 
@@ -151,11 +167,12 @@ L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API
 Un'implementazione di successo dovrebbe:
 1. Generare storie coerenti e di qualità in <10 secondi.
 2. Generare illustrazioni pertinenti e sicure per i bambini.
-3. Avere un'interfaccia intuitiva utilizzabile da bambini con minimo aiuto.
-4. Essere esteticamente piacevole e rilassante.
+3. Fornire una narrazione audio fluida e piacevole.
+4. Avere un'interfaccia intuitiva utilizzabile da bambini con minimo aiuto.
+5. Essere esteticamente piacevole e rilassante.
 
 ---
 
-**Versione**: 1.1 (Con Immagini)
-**Ultimo aggiornamento**: 5 Febbraio 2026
+**Versione**: 1.2 (Con Audio TTS)
+**Ultimo aggiornamento**: 9 Febbraio 2026
 **Target**: Bambini 5-7 anni + Genitori/Educatori
