@@ -49,9 +49,6 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Rest of your styles... */
-/* ... */
-
 header h1 {
     font-family: var(--font-display);
     text-align: center;
@@ -223,6 +220,7 @@ input[type="text"] {
 .actions {
     margin-top: 30px;
     display: flex;
+    flex-wrap: wrap; /* Permette ai pulsanti di andare a capo su mobile */
     gap: 15px;
     justify-content: center;
 }
@@ -233,6 +231,51 @@ input[type="text"] {
     border-radius: 10px;
     cursor: pointer;
     border: 2px solid #8e7cc3;
+    background-color: white;
+    color: #8e7cc3;
+    transition: all 0.2s;
+}
+
+.actions button:hover {
+    background-color: #f0ebf8;
+}
+
+/* Pulsanti specifici */
+#new-story {
+    background-color: #8e7cc3;
+    color: white;
+}
+#new-story:hover {
+    background-color: #7C6BAA;
+}
+
+#play-audio {
+    background-color: #ff9a9e; /* Colore distintivo per l'audio */
+    border-color: #ff9a9e;
+    color: white;
+}
+#play-audio:hover {
+    background-color: #ff7e83;
+}
+
+#download-audio {
+    background-color: transparent;
+    border-color: #ff9a9e;
+    color: #ff9a9e;
+}
+
+#create-illustration {
+    background-color: #90caf9; /* Azzurro per l'immagine */
+    border-color: #90caf9;
+    color: white;
+}
+#create-illustration:hover {
+    background-color: #64b5f6;
+}
+
+#create-illustration:disabled {
+    opacity: 0.7;
+    cursor: wait;
 }
 
 #copy-text {
@@ -240,10 +283,6 @@ input[type="text"] {
     color: #8e7cc3;
 }
 
-#new-story {
-    background-color: #8e7cc3;
-    color: white;
-}
 
 /* Popup Styles */
 #popup-overlay {
@@ -331,15 +370,6 @@ input[type="text"] {
     }
 }
 
-#create-illustration {
-    background-color: #8e7cc3;
-    color: white;
-}
-
-#create-illustration:disabled {
-    opacity: 0.7;
-    cursor: wait;
-}
 
 #story-media-container {
     text-align: center;
