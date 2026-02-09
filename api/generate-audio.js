@@ -27,7 +27,7 @@ export default async function handler(request, response) {
         const requestBody = {
             input: { text: safeText },
             // Scegliamo una voce "Chirp3" per alta qualità
-            voice: { languageCode: 'it-IT', name: 'IT-Chirp3-HD-Leda' },
+            voice: { languageCode: 'it-IT', name: 'it-IT-Chirp3-HD-Leda' },
             audioConfig: { audioEncoding: 'MP3' }
         };
 
