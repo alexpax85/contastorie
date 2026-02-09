@@ -26,9 +26,8 @@ export default async function handler(request, response) {
 
         const requestBody = {
             input: { text: safeText },
-            // Scegliamo una voce "Neural2" per alta qualità
-            // 'it-IT-Neural2-A' è una voce femminile di qualità
-            voice: { languageCode: 'it-IT', name: 'it-IT-Neural2-A' },
+            // Scegliamo una voce "Chirp3" per alta qualità
+            voice: { languageCode: 'it-IT', name: 'IT-Chirp3-HD-Leda' },
             audioConfig: { audioEncoding: 'MP3' }
         };
 
