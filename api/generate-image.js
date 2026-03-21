@@ -45,7 +45,7 @@ export default async function handler(req, res) {
 
 
         // --- STEP 2: Generare l'immagine ---
-        const imageModelName = "imagen-3.0-generate-001";
+        const imageModelName = "imagen-3.0-fast-001";
         const imageUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imageModelName}:generateContent?key=${apiKey}`;
         
         console.log(`Generating image with model: ${imageModelName}`);
@@ -58,15 +58,16 @@ export default async function handler(req, res) {
             })
         });
 
-        if (!imageResponse.ok) {
-             const error = await imageResponse.text();
-             throw new Error(`Failed to generate image with ${imageModelName}: ${imageResponse.status} ${error}`);
-        }
-
         const imageData = await imageResponse.json();
         
-        // Estrazione dati immagine
-        // Cerchiamo in tutte le parti del contenuto quella che ha inlineData
+        if (!imageResponse.ok) {
+             console.error(`API Error (${imageModelName}):`, JSON.stringify(imageData, null, 2));
+             throw new Error(`Failed to generate image: ${imageResponse.status} ${imageData.error?.message || 'Unknown error'}`);
+        }
+
+        console.log("Image API Response received successfully.");
+        
+        // Estrazione dati immagine (Format standard Google AI Studio per immagini)
         const candidate = imageData.candidates?.[0];
         let imagePart = null;
 
@@ -79,8 +80,8 @@ export default async function handler(req, res) {
             const mimeType = imagePart.inlineData.mimeType || "image/jpeg";
             return res.status(200).json({ imageUrl: `data:${mimeType};base64,${base64Image}` });
         } else {
-            console.error("Image data not found. Full Response structure:", JSON.stringify(imageData, null, 2));
-            throw new Error("L'API non ha restituito un'immagine. Potrebbe aver restituito testo.");
+            console.error("Image data structure unexpected:", JSON.stringify(imageData, null, 2));
+            throw new Error("L'API non ha restituito dati immagine validi. Controlla i log del server.");
         }
 
     } catch (error) {
