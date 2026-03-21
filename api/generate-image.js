@@ -45,7 +45,7 @@ export default async function handler(req, res) {
 
 
         // --- STEP 2: Generare l'immagine ---
-        const imageModelName = "imagen-3.0-fast-001";
+        const imageModelName = "imagen-3.0-generate-001";
         const imageUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imageModelName}:generateContent?key=${apiKey}`;
         
         console.log(`Generating image with model: ${imageModelName}`);
@@ -61,8 +61,12 @@ export default async function handler(req, res) {
         const imageData = await imageResponse.json();
         
         if (!imageResponse.ok) {
-             console.error(`API Error (${imageModelName}):`, JSON.stringify(imageData, null, 2));
-             throw new Error(`Failed to generate image: ${imageResponse.status} ${imageData.error?.message || 'Unknown error'}`);
+             console.error(`API Error on Step 2 (${imageModelName}):`, JSON.stringify(imageData, null, 2));
+             // Se imagen-3.0-generate-001 fallisce, proviamo un ultimo tentativo con un nome generico
+             if (imageResponse.status === 404) {
+                 throw new Error(`Il modello ${imageModelName} non è stato trovato. Assicurati che Imagen 3 sia abilitato per la tua API Key in Google AI Studio.`);
+             }
+             throw new Error(`Errore API Immagine: ${imageResponse.status} ${imageData.error?.message || 'Unknown error'}`);
         }
 
         console.log("Image API Response received successfully.");
