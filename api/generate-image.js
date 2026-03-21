@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     try {
         // --- STEP 1: Generare il prompt per l'immagine ---
-        const textModelName = "gemini-1.5-flash-latest";
+        const textModelName = "gemini-2.5-flash";
         let promptUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModelName}:generateContent?key=${apiKey}`;
         
         console.log(`Generating prompt with model: ${textModelName}`);
