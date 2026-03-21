@@ -102,10 +102,10 @@ MORALE: [insegnamento da trasmettere]
 ### Configurazione API
 L'integrazione utilizza chiamate `fetch` dirette agli endpoint `v1beta` dell'API di Google Generative AI e Google Cloud Text-to-Speech.
 
-- **Endpoint Storia & Prompt Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
-    - Modello: `gemini-2.5-flash` (bilanciamento ottimale qualità/velocità)
-- **Endpoint Generazione Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent`
-    - Modello: `gemini-2.5-flash-image`
+- **Endpoint Storia & Prompt Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`
+    - Modello: `gemini-1.5-flash` (bilanciamento ottimale qualità/velocità)
+- **Endpoint Generazione Immagine**: `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateContent`
+    - Modello: `imagen-3.0-generate-001`
 - **Endpoint Text-to-Speech**: `https://texttospeech.googleapis.com/v1/text:synthesize`
     - Voce: `it-IT-Neural2-A` (Femminile, qualità Neural2)
     - Encoding: `MP3`

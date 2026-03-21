@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     try {
         // --- STEP 1: Generare il prompt per l'immagine ---
-        const textModelName = "gemini-2.5-flash";
+        const textModelName = "gemini-1.5-flash";
         let promptUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModelName}:generateContent?key=${apiKey}`;
         
         console.log(`Generating prompt with model: ${textModelName}`);
@@ -45,19 +45,16 @@ export default async function handler(req, res) {
 
 
         // --- STEP 2: Generare l'immagine ---
-        const imageModelName = "gemini-2.5-flash-image";
+        const imageModelName = "imagen-3.0-generate-001";
         const imageUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imageModelName}:generateContent?key=${apiKey}`;
         
         console.log(`Generating image with model: ${imageModelName}`);
 
-        // Rimuoviamo responseMimeType perché causava errore 400.
-        // Lasciamo che il modello usi i suoi default per la generazione di immagini.
         const imageResponse = await fetch(imageUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: imagePrompt }] }],
-                // Non specifichiamo generationConfig per mimeType, lasciamo fare al modello
+                contents: [{ parts: [{ text: imagePrompt }] }]
             })
         });
 
