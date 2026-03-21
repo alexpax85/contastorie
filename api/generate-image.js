@@ -45,7 +45,7 @@ export default async function handler(req, res) {
 
 
         // --- STEP 2: Generare l'immagine ---
-        const imageModelName = "imagen-3.0-generate-001";
+        const imageModelName = "gemini-2.5-flash-image";
         const imageUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imageModelName}:generateContent?key=${apiKey}`;
         
         console.log(`Generating image with model: ${imageModelName}`);
@@ -54,7 +54,13 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: imagePrompt }] }]
+                contents: [{ parts: [{ text: imagePrompt }] }],
+                safetySettings: [
+                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+                ]
             })
         });
 
@@ -62,30 +68,31 @@ export default async function handler(req, res) {
         
         if (!imageResponse.ok) {
              console.error(`API Error on Step 2 (${imageModelName}):`, JSON.stringify(imageData, null, 2));
-             // Se imagen-3.0-generate-001 fallisce, proviamo un ultimo tentativo con un nome generico
-             if (imageResponse.status === 404) {
-                 throw new Error(`Il modello ${imageModelName} non è stato trovato. Assicurati che Imagen 3 sia abilitato per la tua API Key in Google AI Studio.`);
-             }
-             throw new Error(`Errore API Immagine: ${imageResponse.status} ${imageData.error?.message || 'Unknown error'}`);
+             throw new Error(`Errore API Immagine (${imageModelName}): ${imageResponse.status} ${imageData.error?.message || 'Unknown error'}`);
         }
 
         console.log("Image API Response received successfully.");
         
-        // Estrazione dati immagine (Format standard Google AI Studio per immagini)
+        // Estrazione dati immagine
         const candidate = imageData.candidates?.[0];
-        let imagePart = null;
+        
+        // Verifica se il contenuto è stato bloccato dai filtri di sicurezza
+        if (candidate?.finishReason === 'SAFETY') {
+            throw new Error("L'immagine non può essere generata per motivi di sicurezza (filtri Google).");
+        }
 
+        let imagePart = null;
         if (candidate?.content?.parts) {
             imagePart = candidate.content.parts.find(part => part.inlineData);
         }
         
         if (imagePart && imagePart.inlineData && imagePart.inlineData.data) {
             const base64Image = imagePart.inlineData.data;
-            const mimeType = imagePart.inlineData.mimeType || "image/jpeg";
+            const mimeType = imagePart.inlineData.mimeType || "image/png";
             return res.status(200).json({ imageUrl: `data:${mimeType};base64,${base64Image}` });
         } else {
             console.error("Image data structure unexpected:", JSON.stringify(imageData, null, 2));
-            throw new Error("L'API non ha restituito dati immagine validi. Controlla i log del server.");
+            throw new Error("L'API non ha restituito dati immagine validi. Controlla i log.");
         }
 
     } catch (error) {
