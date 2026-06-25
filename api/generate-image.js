@@ -14,6 +14,11 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Server configuration error: Missing API Key' });
     }
 
+    const headers = {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+    };
+
     try {
         // --- STEP 1: Generare il prompt per l'immagine ---
         // Primario: 3.1-flash-lite, fallback: 2.5-flash su 503/429
@@ -23,10 +28,10 @@ export default async function handler(req, res) {
         for (const model of textModels) {
             console.log(`Generating image prompt with model: ${model}`);
             const promptResponse = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent`,
                 {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers,
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: `Riassumi la seguente storia in una singola frase inglese molto descrittiva e visiva, ottimizzata per generare un'illustrazione stile fiabesco per bambini (digital art style). Storia: "${text}"` }] }]
                     })
@@ -34,7 +39,7 @@ export default async function handler(req, res) {
             );
 
             if (promptResponse.status === 503 || promptResponse.status === 429) {
-                console.warn(`Model ${model} returned ${promptResponse.status}, trying next...`);
+                console.warn(`Text model ${model} returned ${promptResponse.status}, trying next...`);
                 continue;
             }
 
@@ -54,26 +59,26 @@ export default async function handler(req, res) {
 
         console.log("Generated Image Prompt:", imagePrompt);
 
-        // --- STEP 2: Generare l'immagine con Interactions API ---
-        // generateContent non supporta output immagini; usare /v1beta/interactions
+        // --- STEP 2: Generare l'immagine con generateContent + responseModalities ---
         // Primario: 3.1-flash-image, fallback: 2.5-flash-image su 503/429
         const imageModels = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image'];
-        const interactionsUrl = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 
         for (const imageModel of imageModels) {
             console.log(`Generating image with model: ${imageModel}`);
 
-            const imageResponse = await fetch(interactionsUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': apiKey
-                },
-                body: JSON.stringify({
-                    model: imageModel,
-                    input: [{ type: 'text', text: imagePrompt }]
-                })
-            });
+            const imageResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1/models/${imageModel}:generateContent`,
+                {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: imagePrompt }] }],
+                        generationConfig: {
+                            responseModalities: ['TEXT', 'IMAGE']
+                        }
+                    })
+                }
+            );
 
             const imageData = await imageResponse.json();
 
@@ -83,7 +88,7 @@ export default async function handler(req, res) {
             }
 
             if (!imageResponse.ok) {
-                const apiErrorMsg = imageData?.error?.message || imageData?.message || imageResponse.statusText;
+                const apiErrorMsg = imageData?.error?.message || imageResponse.statusText;
                 console.error(`API Error (${imageModel}):`, JSON.stringify(imageData, null, 2));
                 return res.status(imageResponse.status).json({
                     message: `Errore API Immagine (${imageModel}): ${apiErrorMsg}`,
@@ -91,11 +96,12 @@ export default async function handler(req, res) {
                 });
             }
 
-            const base64Image = imageData?.output_image?.data
-                ?? imageData?.steps?.flatMap(s => s.content ?? []).find(c => c.type === 'image')?.data;
+            const parts = imageData?.candidates?.[0]?.content?.parts ?? [];
+            const imagePart = parts.find(p => p.inlineData);
 
-            if (base64Image) {
-                return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${base64Image}` });
+            if (imagePart?.inlineData?.data) {
+                const { data, mimeType } = imagePart.inlineData;
+                return res.status(200).json({ imageUrl: `data:${mimeType || 'image/png'};base64,${data}` });
             }
 
             console.error("Image data structure unexpected:", JSON.stringify(imageData, null, 2));
