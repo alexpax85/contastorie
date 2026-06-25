@@ -31,7 +31,7 @@ export default async function handler(req, res) {
                         'x-goog-api-key': apiKey
                     },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Riassumi la seguente storia in una singola frase inglese molto descrittiva e visiva, ottimizzata per generare un'illustrazione stile fiabesco per bambini (digital art style, pastel colors, warm and magical atmosphere). Storia: "${text}"` }] }]
+                        contents: [{ parts: [{ text: `Riassumi la seguente storia in una singola frase inglese molto descrittiva e visiva, ottimizzata per generare un'illustrazione per un libro per bambini. La scena deve essere ricca di dettagli visivi (personaggi, ambientazione, emozione). Storia: "${text}"` }] }]
                     })
                 }
             );
@@ -58,7 +58,8 @@ export default async function handler(req, res) {
         console.log("Generated Image Prompt:", imagePrompt);
 
         // --- STEP 2: Genera l'immagine via Pollinations.ai (gratuito, no API key) ---
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=768&height=768&nologo=true`;
+        const styledPrompt = `${imagePrompt}, children's book illustration, hand-drawn watercolor style, soft brushstrokes, whimsical storybook art, warm pastel colors, Quentin Blake style`;
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(styledPrompt)}?width=768&height=768&nologo=true`;
 
         return res.status(200).json({ imageUrl });
 
