@@ -45,9 +45,10 @@ export default async function handler(req, res) {
 
 
         // --- STEP 2: Generare l'immagine ---
-        const imageModelName = "gemini-2.5-flash-image";
+        // gemini-2.5-flash supports image output via responseModalities (official approach since 2026)
+        const imageModelName = "gemini-2.5-flash";
         const imageUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imageModelName}:generateContent?key=${apiKey}`;
-        
+
         console.log(`Generating image with model: ${imageModelName}`);
 
         const imageResponse = await fetch(imageUrl, {
@@ -55,20 +56,27 @@ export default async function handler(req, res) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: imagePrompt }] }],
+                generationConfig: {
+                    responseModalities: ["IMAGE", "TEXT"]
+                },
                 safetySettings: [
-                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
                 ]
             })
         });
 
         const imageData = await imageResponse.json();
-        
+
         if (!imageResponse.ok) {
-             console.error(`API Error on Step 2 (${imageModelName}):`, JSON.stringify(imageData, null, 2));
-             throw new Error(`Errore API Immagine (${imageModelName}): ${imageResponse.status} ${imageData.error?.message || 'Unknown error'}`);
+            const apiErrorMsg = imageData?.error?.message || imageData?.message || imageResponse.statusText;
+            console.error(`API Error on Step 2 (${imageModelName}):`, JSON.stringify(imageData, null, 2));
+            return res.status(imageResponse.status).json({
+                message: `Errore API Immagine (${imageModelName}): ${apiErrorMsg}`,
+                details: imageData?.error
+            });
         }
 
         console.log("Image API Response received successfully.");
@@ -97,6 +105,6 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("Error in generate-image:", error);
-        res.status(500).json({ message: "Errore durante la generazione dell'immagine", details: error.message });
+        res.status(500).json({ message: error.message || "Errore durante la generazione dell'immagine" });
     }
 }
