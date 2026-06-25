@@ -44,26 +44,23 @@ export default async function handler(req, res) {
         console.log("Generated Image Prompt:", imagePrompt);
 
 
-        // --- STEP 2: Generare l'immagine ---
-        // gemini-2.5-flash supports image output via responseModalities (official approach since 2026)
-        const imageModelName = "gemini-2.5-flash";
-        const imageUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imageModelName}:generateContent?key=${apiKey}`;
+        // --- STEP 2: Generare l'immagine con Interactions API ---
+        // generateContent non supporta output immagini; usare il nuovo endpoint /v1beta/interactions
+        const imageModelName = "gemini-2.5-flash-image";
+        const interactionsUrl = `https://generativelanguage.googleapis.com/v1beta/interactions`;
 
-        console.log(`Generating image with model: ${imageModelName}`);
+        console.log(`Generating image with model: ${imageModelName} via Interactions API`);
 
-        const imageResponse = await fetch(imageUrl, {
+        const imageResponse = await fetch(interactionsUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey
+            },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: imagePrompt }] }],
-                generationConfig: {
-                    responseModalities: ["IMAGE", "TEXT"]
-                },
-                safetySettings: [
-                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                model: imageModelName,
+                input: [
+                    { type: "text", text: imagePrompt }
                 ]
             })
         });
@@ -80,24 +77,13 @@ export default async function handler(req, res) {
         }
 
         console.log("Image API Response received successfully.");
-        
-        // Estrazione dati immagine
-        const candidate = imageData.candidates?.[0];
-        
-        // Verifica se il contenuto è stato bloccato dai filtri di sicurezza
-        if (candidate?.finishReason === 'SAFETY') {
-            throw new Error("L'immagine non può essere generata per motivi di sicurezza (filtri Google).");
-        }
 
-        let imagePart = null;
-        if (candidate?.content?.parts) {
-            imagePart = candidate.content.parts.find(part => part.inlineData);
-        }
-        
-        if (imagePart && imagePart.inlineData && imagePart.inlineData.data) {
-            const base64Image = imagePart.inlineData.data;
-            const mimeType = imagePart.inlineData.mimeType || "image/png";
-            return res.status(200).json({ imageUrl: `data:${mimeType};base64,${base64Image}` });
+        // Estrazione immagine dalla risposta Interactions API
+        const base64Image = imageData?.output_image?.data
+            ?? imageData?.steps?.flatMap(s => s.content ?? []).find(c => c.type === 'image')?.data;
+
+        if (base64Image) {
+            return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${base64Image}` });
         } else {
             console.error("Image data structure unexpected:", JSON.stringify(imageData, null, 2));
             throw new Error("L'API non ha restituito dati immagine validi. Controlla i log.");
