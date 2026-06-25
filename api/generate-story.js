@@ -1,25 +1,18 @@
 // api/generate-story.js
 
-// Questa è una funzione serverless Node.js
-// Vercel/Netlify la eseguiranno in un ambiente sicuro sul server.
-
 export default async function handler(request, response) {
-    // 1. Leggi la chiave API segreta dalle variabili d'ambiente del server
     const apiKey = process.env.GEMINI_API_KEY;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     if (!apiKey) {
         return response.status(500).json({ error: 'La chiave API di Gemini non è stata configurata sul server.' });
     }
 
-    // Assicurati che la richiesta sia di tipo POST
     if (request.method !== 'POST') {
         response.setHeader('Allow', 'POST');
         return response.status(405).end('Method Not Allowed');
     }
 
     try {
-        // 2. Prendi i dati inviati dal frontend
         const { characters, setting, moral } = request.body;
 
         if (!characters || !setting || !moral) {
@@ -49,51 +42,72 @@ FORMATO OUTPUT:
 - Finale che evidenzi chiaramente la morale.
 `;
 
-        // 3. Chiama l'API di Gemini dal server (in modo sicuro)
-        const geminiResponse = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+        const requestBody = JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: 0.8,
+                maxOutputTokens: 4096,
             },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.8,
-                    maxOutputTokens: 4096,
-                },
-                safetySettings: [
-                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                ],
-            }),
+            safetySettings: [
+                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            ],
         });
 
-        if (!geminiResponse.ok) {
-            const errorBody = await geminiResponse.json();
-            console.error('Errore dalla API di Gemini:', errorBody);
-            return response.status(geminiResponse.status).json({ error: `Errore dall'API di Gemini: ${geminiResponse.statusText}` });
-        }
+        // Try primary model, fall back on 503/429 (free tier overload)
+        const models = ['gemini-3.1-flash-lite', 'gemini-2.5-flash'];
+        let lastError = null;
 
-        const data = await geminiResponse.json();
+        for (const model of models) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            console.log(`Trying model: ${model}`);
 
-        if (data.candidates && data.candidates.length > 0) {
-            const content = data.candidates[0].content.parts[0].text;
-            // Semplice parsing per separare titolo e testo
-            const lines = content.split('\n');
-            const title = lines[0];
-            const storyText = lines.slice(1).join('\n').trim();
-            
-            // 4. Invia la storia generata al frontend
-            return response.status(200).json({ title, storyText });
-        } else {
-             if (data.promptFeedback && data.promptFeedback.blockReason) {
-                 const reason = data.promptFeedback.blockReason;
-                 return response.status(400).json({ error: `Il contenuto è stato bloccato per motivi di sicurezza: ${reason}` });
+            const geminiResponse = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: requestBody,
+            });
+
+            if (geminiResponse.status === 503 || geminiResponse.status === 429) {
+                const errorBody = await geminiResponse.json();
+                console.warn(`Model ${model} returned ${geminiResponse.status}, trying next...`, errorBody);
+                lastError = { status: geminiResponse.status, body: errorBody };
+                continue;
             }
+
+            if (!geminiResponse.ok) {
+                const errorBody = await geminiResponse.json();
+                console.error(`Errore dalla API di Gemini (${model}):`, errorBody);
+                return response.status(geminiResponse.status).json({
+                    error: errorBody?.error?.message || `Errore dall'API di Gemini: ${geminiResponse.statusText}`
+                });
+            }
+
+            const data = await geminiResponse.json();
+
+            if (data.candidates && data.candidates.length > 0) {
+                const content = data.candidates[0].content.parts[0].text;
+                const lines = content.split('\n');
+                const title = lines[0];
+                const storyText = lines.slice(1).join('\n').trim();
+                return response.status(200).json({ title, storyText });
+            }
+
+            if (data.promptFeedback?.blockReason) {
+                return response.status(400).json({
+                    error: `Il contenuto è stato bloccato per motivi di sicurezza: ${data.promptFeedback.blockReason}`
+                });
+            }
+
             return response.status(500).json({ error: 'Nessuna storia generata. Riprova con parametri diversi.' });
         }
+
+        // All models failed with 503/429
+        return response.status(503).json({
+            error: 'Il servizio è temporaneamente sovraccarico (piano gratuito). Riprova tra qualche minuto.'
+        });
 
     } catch (error) {
         console.error('Errore nella funzione serverless:', error);

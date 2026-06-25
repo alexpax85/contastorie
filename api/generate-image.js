@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 
         // --- STEP 2: Generare l'immagine con Interactions API ---
         // generateContent non supporta output immagini; usare il nuovo endpoint /v1beta/interactions
-        const imageModelName = "gemini-2.5-flash-image";
+        const imageModelName = "gemini-3.1-flash-image";
         const interactionsUrl = `https://generativelanguage.googleapis.com/v1beta/interactions`;
 
         console.log(`Generating image with model: ${imageModelName} via Interactions API`);
