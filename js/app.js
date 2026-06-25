@@ -61,9 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const newStoryBtn = document.getElementById('new-story');
     const copyTextBtn = document.getElementById('copy-text');
     const createIllustrationBtn = document.getElementById('create-illustration'); // NEW
-    const playAudioBtn = document.getElementById('play-audio'); // NEW AUDIO
-    const downloadAudioBtn = document.getElementById('download-audio'); // NEW AUDIO
-    const storyAudioEl = document.getElementById('story-audio'); // NEW AUDIO
 
     const storyTitleEl = document.getElementById('story-title');
     const storyTextEl = document.getElementById('story-text');
@@ -309,102 +306,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // NEW: Handle Audio Generation & Playback
-    async function handlePlayAudio() {
-        const storyText = storyTitleEl.textContent + ". " + storyTextEl.innerText;
-        if (!storyText) return;
-
-        // Se l'audio è già caricato e pronto, lo gestiamo (play/pause)
-        if (storyAudioEl.src && storyAudioEl.src !== window.location.href) {
-            if (storyAudioEl.paused) {
-                storyAudioEl.play();
-                playAudioBtn.textContent = "⏸️ Pausa";
-            } else {
-                storyAudioEl.pause();
-                playAudioBtn.textContent = "🔊 Riprendi";
-            }
-            return;
-        }
-
-        playAudioBtn.disabled = true;
-        const originalText = playAudioBtn.textContent;
-        playAudioBtn.textContent = "🎧 Preparo l'audio...";
-
-        try {
-            const response = await fetch('/api/generate-audio', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: storyText })
-            });
-
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.error || "Errore sconosciuto");
-            }
-
-            const data = await response.json();
-            
-            // Convert base64 to Blob
-            const audioBytes = Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0));
-            const audioBlob = new Blob([audioBytes], { type: 'audio/mp3' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-
-            // Setup Audio Element
-            storyAudioEl.src = audioUrl;
-            storyAudioEl.play();
-            
-            // Update UI
-            playAudioBtn.disabled = false;
-            playAudioBtn.textContent = "⏸️ Pausa";
-            
-            // Show Download Button
-            downloadAudioBtn.classList.remove('hidden');
-            downloadAudioBtn.onclick = () => {
-                const a = document.createElement('a');
-                a.href = audioUrl;
-                a.download = `Fiaba - ${storyTitleEl.textContent.substring(0, 20)}.mp3`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            };
-
-            // Reset button when audio ends
-            storyAudioEl.onended = () => {
-                playAudioBtn.textContent = "🔊 Ascolta di nuovo";
-            };
-
-        } catch (error) {
-            console.error("Errore generazione audio:", error);
-            alert(`Non sono riuscito a generare la voce: ${error.message}`);
-            playAudioBtn.disabled = false;
-            playAudioBtn.textContent = originalText;
-        }
-    }
-
-    // --- INIZIALIZZAZIONE ---
-    createOptionCards(characterOptionsContainer, charactersData, 'character', true);
-    createOptionCards(settingOptionsContainer, settingsData, 'setting', true);
-    createOptionCards(moralOptionsContainer, moralsData, 'moral', false); 
-
-    // --- EVENT LISTENERS ---
-    selectionScreen.addEventListener('click', handleCardClick); 
-    moralOptionsContainer.addEventListener('click', handleMoralCardSelection); 
-    generateStoryBtn.addEventListener('click', handleGenerateStory);
-    popupSelectBtn.addEventListener('click', handlePopupSelect);
-    popupCloseBtn.addEventListener('click', handlePopupClose);
-
-
     newStoryBtn.addEventListener('click', () => {
         storyTitleEl.textContent = '';
         storyTextEl.innerHTML = '';
         storyMediaContainer.innerHTML = ''; // Clear images
         
-        // Reset Audio
-        storyAudioEl.pause();
-        storyAudioEl.src = "";
-        playAudioBtn.textContent = "🔊 Ascolta storia";
-        downloadAudioBtn.classList.add('hidden');
-
         document.querySelectorAll('.option-card.selected').forEach(c => c.classList.remove('selected'));
         customCharacterInput.value = '';
         customSettingInput.value = '';
@@ -415,6 +321,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     copyTextBtn.addEventListener('click', handleCopyText);
-    createIllustrationBtn.addEventListener('click', handleCreateIllustration); // Listener for new button
-    playAudioBtn.addEventListener('click', handlePlayAudio); // NEW AUDIO Listener
+    createIllustrationBtn.addEventListener('click', handleCreateIllustration);
+
+    // Initialize option cards
+    createOptionCards(characterOptionsContainer, charactersData, 'character');
+    createOptionCards(settingOptionsContainer, settingsData, 'setting');
+    createOptionCards(moralOptionsContainer, moralsData, 'moral', false);
+
+    // Card click handlers
+    characterOptionsContainer.addEventListener('click', handleCardClick);
+    settingOptionsContainer.addEventListener('click', handleCardClick);
+    moralOptionsContainer.addEventListener('click', handleMoralCardSelection);
+
+    // Popup handlers
+    popupSelectBtn.addEventListener('click', handlePopupSelect);
+    popupCloseBtn.addEventListener('click', handlePopupClose);
+    popupOverlay.addEventListener('click', (e) => {
+        if (e.target === popupOverlay) handlePopupClose();
+    });
+
+    // Generate story
+    generateStoryBtn.addEventListener('click', handleGenerateStory);
 });
