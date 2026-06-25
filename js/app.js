@@ -321,5 +321,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     copyTextBtn.addEventListener('click', handleCopyText);
-    createIllustrationBtn.addEventListener('click', handleCreateIllustration); // Listener for new button
+    createIllustrationBtn.addEventListener('click', handleCreateIllustration);
+
+    // Initialize option cards
+    createOptionCards(characterOptionsContainer, charactersData, 'character');
+    createOptionCards(settingOptionsContainer, settingsData, 'setting');
+    createOptionCards(moralOptionsContainer, moralsData, 'moral', false);
+
+    // Card click handlers
+    characterOptionsContainer.addEventListener('click', handleCardClick);
+    settingOptionsContainer.addEventListener('click', handleCardClick);
+    moralOptionsContainer.addEventListener('click', handleMoralCardSelection);
+
+    // Popup handlers
+    popupSelectBtn.addEventListener('click', handlePopupSelect);
+    popupCloseBtn.addEventListener('click', handlePopupClose);
+    popupOverlay.addEventListener('click', (e) => {
+        if (e.target === popupOverlay) handlePopupClose();
+    });
+
+    // Generate story
+    generateStoryBtn.addEventListener('click', handleGenerateStory);
 });
