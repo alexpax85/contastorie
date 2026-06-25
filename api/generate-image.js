@@ -14,13 +14,8 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Server configuration error: Missing API Key' });
     }
 
-    const headers = {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-    };
-
     try {
-        // --- STEP 1: Generare il prompt per l'immagine ---
+        // --- STEP 1: Genera un prompt visivo dalla storia via Gemini ---
         // Primario: 3.1-flash-lite, fallback: 2.5-flash su 503/429
         const textModels = ['gemini-3.1-flash-lite', 'gemini-2.5-flash'];
         let imagePrompt = null;
@@ -31,9 +26,12 @@ export default async function handler(req, res) {
                 `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent`,
                 {
                     method: 'POST',
-                    headers,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey
+                    },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Riassumi la seguente storia in una singola frase inglese molto descrittiva e visiva, ottimizzata per generare un'illustrazione stile fiabesco per bambini (digital art style). Storia: "${text}"` }] }]
+                        contents: [{ parts: [{ text: `Riassumi la seguente storia in una singola frase inglese molto descrittiva e visiva, ottimizzata per generare un'illustrazione stile fiabesco per bambini (digital art style, pastel colors, warm and magical atmosphere). Storia: "${text}"` }] }]
                     })
                 }
             );
@@ -49,7 +47,7 @@ export default async function handler(req, res) {
             }
 
             const promptData = await promptResponse.json();
-            imagePrompt = promptData.candidates?.[0]?.content?.parts?.[0]?.text;
+            imagePrompt = promptData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
             if (imagePrompt) break;
         }
 
@@ -59,56 +57,10 @@ export default async function handler(req, res) {
 
         console.log("Generated Image Prompt:", imagePrompt);
 
-        // --- STEP 2: Generare l'immagine con generateContent + responseModalities ---
-        // Primario: 3.1-flash-image, fallback: 2.5-flash-image su 503/429
-        const imageModels = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image'];
+        // --- STEP 2: Genera l'immagine via Pollinations.ai (gratuito, no API key) ---
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=768&height=768&nologo=true`;
 
-        for (const imageModel of imageModels) {
-            console.log(`Generating image with model: ${imageModel}`);
-
-            const imageResponse = await fetch(
-                `https://generativelanguage.googleapis.com/v1/models/${imageModel}:generateContent`,
-                {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: imagePrompt }] }],
-                        generationConfig: {
-                            responseModalities: ['TEXT', 'IMAGE']
-                        }
-                    })
-                }
-            );
-
-            const imageData = await imageResponse.json();
-
-            if (imageResponse.status === 503 || imageResponse.status === 429) {
-                console.warn(`Image model ${imageModel} returned ${imageResponse.status}, trying next...`);
-                continue;
-            }
-
-            if (!imageResponse.ok) {
-                const apiErrorMsg = imageData?.error?.message || imageResponse.statusText;
-                console.error(`API Error (${imageModel}):`, JSON.stringify(imageData, null, 2));
-                return res.status(imageResponse.status).json({
-                    message: `Errore API Immagine (${imageModel}): ${apiErrorMsg}`,
-                    details: imageData?.error
-                });
-            }
-
-            const parts = imageData?.candidates?.[0]?.content?.parts ?? [];
-            const imagePart = parts.find(p => p.inlineData);
-
-            if (imagePart?.inlineData?.data) {
-                const { data, mimeType } = imagePart.inlineData;
-                return res.status(200).json({ imageUrl: `data:${mimeType || 'image/png'};base64,${data}` });
-            }
-
-            console.error("Image data structure unexpected:", JSON.stringify(imageData, null, 2));
-            throw new Error("L'API non ha restituito dati immagine validi. Controlla i log.");
-        }
-
-        return res.status(503).json({ message: 'Il servizio di generazione immagini è temporaneamente sovraccarico. Riprova tra qualche minuto.' });
+        return res.status(200).json({ imageUrl });
 
     } catch (error) {
         console.error("Error in generate-image:", error);
