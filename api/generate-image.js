@@ -16,78 +16,93 @@ export default async function handler(req, res) {
 
     try {
         // --- STEP 1: Generare il prompt per l'immagine ---
-        const textModelName = "gemini-2.5-flash";
-        let promptUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textModelName}:generateContent?key=${apiKey}`;
-        
-        console.log(`Generating prompt with model: ${textModelName}`);
+        // Primario: 3.1-flash-lite, fallback: 2.5-flash su 503/429
+        const textModels = ['gemini-3.1-flash-lite', 'gemini-2.5-flash'];
+        let imagePrompt = null;
 
-        let promptResponse = await fetch(promptUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: `Riassumi la seguente storia in una singola frase inglese molto descrittiva e visiva, ottimizzata per generare un'illustrazione stile fiabesco per bambini (digital art style). Storia: "${text}"` }] }]
-            })
-        });
+        for (const model of textModels) {
+            console.log(`Generating image prompt with model: ${model}`);
+            const promptResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Riassumi la seguente storia in una singola frase inglese molto descrittiva e visiva, ottimizzata per generare un'illustrazione stile fiabesco per bambini (digital art style). Storia: "${text}"` }] }]
+                    })
+                }
+            );
 
-        if (!promptResponse.ok) {
-            const error = await promptResponse.text();
-            throw new Error(`Failed to generate prompt with ${textModelName}: ${promptResponse.status} ${error}`);
+            if (promptResponse.status === 503 || promptResponse.status === 429) {
+                console.warn(`Model ${model} returned ${promptResponse.status}, trying next...`);
+                continue;
+            }
+
+            if (!promptResponse.ok) {
+                const error = await promptResponse.text();
+                throw new Error(`Failed to generate prompt (${model}): ${promptResponse.status} ${error}`);
+            }
+
+            const promptData = await promptResponse.json();
+            imagePrompt = promptData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (imagePrompt) break;
         }
 
-        const promptData = await promptResponse.json();
-        const imagePrompt = promptData.candidates?.[0]?.content?.parts?.[0]?.text;
-
         if (!imagePrompt) {
-            throw new Error("Failed to extract prompt text from API response");
+            return res.status(503).json({ message: 'Il servizio è temporaneamente sovraccarico. Riprova tra qualche minuto.' });
         }
 
         console.log("Generated Image Prompt:", imagePrompt);
 
-
         // --- STEP 2: Generare l'immagine con Interactions API ---
-        // generateContent non supporta output immagini; usare il nuovo endpoint /v1beta/interactions
-        const imageModelName = "gemini-3.1-flash-image";
-        const interactionsUrl = `https://generativelanguage.googleapis.com/v1beta/interactions`;
+        // generateContent non supporta output immagini; usare /v1beta/interactions
+        // Primario: 3.1-flash-image, fallback: 2.5-flash-image su 503/429
+        const imageModels = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image'];
+        const interactionsUrl = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 
-        console.log(`Generating image with model: ${imageModelName} via Interactions API`);
+        for (const imageModel of imageModels) {
+            console.log(`Generating image with model: ${imageModel}`);
 
-        const imageResponse = await fetch(interactionsUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify({
-                model: imageModelName,
-                input: [
-                    { type: "text", text: imagePrompt }
-                ]
-            })
-        });
-
-        const imageData = await imageResponse.json();
-
-        if (!imageResponse.ok) {
-            const apiErrorMsg = imageData?.error?.message || imageData?.message || imageResponse.statusText;
-            console.error(`API Error on Step 2 (${imageModelName}):`, JSON.stringify(imageData, null, 2));
-            return res.status(imageResponse.status).json({
-                message: `Errore API Immagine (${imageModelName}): ${apiErrorMsg}`,
-                details: imageData?.error
+            const imageResponse = await fetch(interactionsUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': apiKey
+                },
+                body: JSON.stringify({
+                    model: imageModel,
+                    input: [{ type: 'text', text: imagePrompt }]
+                })
             });
-        }
 
-        console.log("Image API Response received successfully.");
+            const imageData = await imageResponse.json();
 
-        // Estrazione immagine dalla risposta Interactions API
-        const base64Image = imageData?.output_image?.data
-            ?? imageData?.steps?.flatMap(s => s.content ?? []).find(c => c.type === 'image')?.data;
+            if (imageResponse.status === 503 || imageResponse.status === 429) {
+                console.warn(`Image model ${imageModel} returned ${imageResponse.status}, trying next...`);
+                continue;
+            }
 
-        if (base64Image) {
-            return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${base64Image}` });
-        } else {
+            if (!imageResponse.ok) {
+                const apiErrorMsg = imageData?.error?.message || imageData?.message || imageResponse.statusText;
+                console.error(`API Error (${imageModel}):`, JSON.stringify(imageData, null, 2));
+                return res.status(imageResponse.status).json({
+                    message: `Errore API Immagine (${imageModel}): ${apiErrorMsg}`,
+                    details: imageData?.error
+                });
+            }
+
+            const base64Image = imageData?.output_image?.data
+                ?? imageData?.steps?.flatMap(s => s.content ?? []).find(c => c.type === 'image')?.data;
+
+            if (base64Image) {
+                return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${base64Image}` });
+            }
+
             console.error("Image data structure unexpected:", JSON.stringify(imageData, null, 2));
             throw new Error("L'API non ha restituito dati immagine validi. Controlla i log.");
         }
+
+        return res.status(503).json({ message: 'Il servizio di generazione immagini è temporaneamente sovraccarico. Riprova tra qualche minuto.' });
 
     } catch (error) {
         console.error("Error in generate-image:", error);
