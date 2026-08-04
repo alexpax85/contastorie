@@ -60,16 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateStoryBtn = document.getElementById('generate-story');
     const newStoryBtn = document.getElementById('new-story');
     const copyTextBtn = document.getElementById('copy-text');
-    const createIllustrationBtn = document.getElementById('create-illustration'); // NEW
+    const createComicBtn = document.getElementById('create-comic');
+    const createImagePromptBtn = document.getElementById('create-image-prompt');
 
     const storyTitleEl = document.getElementById('story-title');
     const storyTextEl = document.getElementById('story-text');
-    
-    // Create container for media (Image)
-    const storyMediaContainer = document.createElement('div');
-    storyMediaContainer.id = 'story-media-container';
-    // Insert it before the actions buttons
-    storyScreen.insertBefore(storyMediaContainer, document.querySelector('#story-screen .actions'));
 
     // --- POPUP ELEMENTI ---
     const popupOverlay = document.getElementById('popup-overlay');
@@ -242,75 +237,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // NEW: Handle Image Generation
-    async function handleCreateIllustration() {
+    // Prompt per un fumetto a vignette basato sulla storia
+    function buildComicPrompt(title, storyText) {
+        return `Crea un fumetto a più vignette basato su questa fiaba per bambini, seguendo fedelmente l'intera trama dall'inizio alla fine, senza riassumere, saltare o accorciare passaggi della storia. Usa tutte le vignette necessarie per coprire ogni scena significativa. Mantieni personaggi e ambientazione coerenti in ogni vignetta, stile illustrato colorato e adatto ai bambini, con brevi didascalie o dialoghi dove utile.\n\nTitolo: ${title}\n\nStoria completa (da seguire per intero):\n${storyText}`;
+    }
+
+    // Prompt per un'unica immagine riassuntiva della storia
+    function buildSummaryImagePrompt(title, storyText) {
+        return `Crea un'unica illustrazione, in stile libro per bambini (acquerello, disegnata a mano, colori pastello caldi), che riassuma visivamente il momento più significativo di questa fiaba.\n\nTitolo: ${title}\n\nStoria:\n${storyText}`;
+    }
+
+    async function copyPromptToClipboard(promptText, successMessage) {
+        try {
+            await navigator.clipboard.writeText(promptText);
+            alert(successMessage);
+        } catch (err) {
+            console.error('Errore clipboard:', err);
+            alert('Errore durante la copia del prompt negli appunti.');
+        }
+    }
+
+    function handleCreateComic() {
         const storyText = storyTextEl.innerText;
         if (!storyText) return;
+        const prompt = buildComicPrompt(storyTitleEl.textContent, storyText);
+        copyPromptToClipboard(prompt, '📋 Prompt per il fumetto copiato! Incollalo nella tua app AI preferita (ChatGPT, Gemini...) per generarlo.');
+    }
 
-        createIllustrationBtn.disabled = true;
-        const originalText = createIllustrationBtn.textContent;
-        createIllustrationBtn.textContent = "🎨 Sto disegnando...";
-
-        try {
-            const response = await fetch('/api/generate-image', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: storyText })
-            });
-
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.message || "Errore sconosciuto");
-            }
-
-            const data = await response.json();
-            
-            // Clear previous media
-            storyMediaContainer.innerHTML = '';
-            
-            const img = document.createElement('img');
-            img.src = data.imageUrl;
-            img.alt = "Illustrazione magica";
-            img.style.maxWidth = '100%';
-            img.style.borderRadius = '15px';
-            img.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
-            img.style.marginTop = '20px';
-            
-            // Allow copying image on click (optional but nice)
-            img.title = "Clicca per copiare l'immagine";
-            img.style.cursor = "pointer";
-            img.onclick = async () => {
-                try {
-                    const response = await fetch(data.imageUrl);
-                    const blob = await response.blob();
-                    await navigator.clipboard.write([
-                        new ClipboardItem({
-                            [blob.type]: blob
-                        })
-                    ]);
-                    alert("Immagine copiata negli appunti!");
-                } catch (e) {
-                    console.error("Copia immagine fallita", e);
-                    alert("Impossibile copiare l'immagine automaticamente.");
-                }
-            };
-
-            storyMediaContainer.appendChild(img);
-
-        } catch (error) {
-            console.error("Errore generazione immagine:", error);
-            alert(`Non sono riuscito a creare il disegno: ${error.message}`);
-        } finally {
-            createIllustrationBtn.disabled = false;
-            createIllustrationBtn.textContent = originalText;
-        }
+    function handleCreateImagePrompt() {
+        const storyText = storyTextEl.innerText;
+        if (!storyText) return;
+        const prompt = buildSummaryImagePrompt(storyTitleEl.textContent, storyText);
+        copyPromptToClipboard(prompt, "📋 Prompt per l'immagine copiato! Incollalo nella tua app AI preferita (ChatGPT, Gemini...) per generarla.");
     }
 
     newStoryBtn.addEventListener('click', () => {
         storyTitleEl.textContent = '';
         storyTextEl.innerHTML = '';
-        storyMediaContainer.innerHTML = ''; // Clear images
-        
+
         document.querySelectorAll('.option-card.selected').forEach(c => c.classList.remove('selected'));
         customCharacterInput.value = '';
         customSettingInput.value = '';
@@ -321,7 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     copyTextBtn.addEventListener('click', handleCopyText);
-    createIllustrationBtn.addEventListener('click', handleCreateIllustration);
+    createComicBtn.addEventListener('click', handleCreateComic);
+    createImagePromptBtn.addEventListener('click', handleCreateImagePrompt);
 
     // Initialize option cards
     createOptionCards(characterOptionsContainer, charactersData, 'character');

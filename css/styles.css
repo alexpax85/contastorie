@@ -225,6 +225,11 @@ input[type="text"] {
     justify-content: center;
 }
 
+.top-actions {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
 .actions button {
     padding: 10px 20px;
     font-size: 1em;
@@ -264,18 +269,22 @@ input[type="text"] {
     color: #ff9a9e;
 }
 
-#create-illustration {
+#create-image-prompt {
     background-color: #90caf9; /* Azzurro per l'immagine */
     border-color: #90caf9;
     color: white;
 }
-#create-illustration:hover {
+#create-image-prompt:hover {
     background-color: #64b5f6;
 }
 
-#create-illustration:disabled {
-    opacity: 0.7;
-    cursor: wait;
+#create-comic {
+    background-color: #ffb74d; /* Arancio per il fumetto */
+    border-color: #ffb74d;
+    color: white;
+}
+#create-comic:hover {
+    background-color: #ffa726;
 }
 
 #copy-text {
@@ -370,8 +379,3 @@ input[type="text"] {
     }
 }
 
-
-#story-media-container {
-    text-align: center;
-    margin: 20px 0;
-}
